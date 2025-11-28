@@ -36,7 +36,7 @@ export interface FormField {
   label: string;
   type: FieldType;
   options?: string[]; // For radio
-  section: string; // Grouping: "当事人信息", "诉讼请求", "事实与理由", etc.
+  section: string; // Grouping
   placeholder?: string;
   width?: 'full' | 'half' | 'third';
   defaultValue?: any;
@@ -45,8 +45,10 @@ export interface FormField {
 export interface Template {
   id: string; 
   name: string;
-  category: string; 
+  category: string; // Sub-category like "Marriage", "Contract"
+  group: '民事' | '行政' | '刑事' | '执行' | '国家赔偿'; // Top level category
   type: 'complaint' | 'answer' | 'application'; 
+  icon: string; // Icon name for UI mapping
   fields: FormField[];
   defaultContent: Record<string, any>;
 }
@@ -54,8 +56,6 @@ export interface Template {
 export interface GeneratedDocData {
   [key: string]: any;
 }
-
-// --- New Types for LegalAI and LegalCtrct ---
 
 export interface ChatMessage {
   id: string;
