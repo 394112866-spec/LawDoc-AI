@@ -12,6 +12,9 @@ const App: React.FC = () => {
   const [selectedTemplateId, setSelectedTemplateId] = useState<DocumentType>(DocumentType.COMPLAINT_PRIVATE_LENDING);
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [isThinking, setIsThinking] = useState(false);
+  
+  // Ref for file upload
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const currentTemplate = TEMPLATES.find(t => t.id === selectedTemplateId) || TEMPLATES[0];
 
@@ -53,6 +56,20 @@ const App: React.FC = () => {
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
+  };
+
+  // Template Upload Handlers
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Simulation of upload process
+      alert(`成功选择模板文件: ${file.name}\n正在解析模板结构...`);
+      // Here you would typically read the file and update the state
+    }
   };
 
   // Render Views
@@ -137,9 +154,21 @@ const App: React.FC = () => {
     <div className="p-10 max-w-4xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-800">模板管理</h2>
-        <button className="bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-blue-700">
-          <Plus size={18} /> 上传新模板
-        </button>
+        <div>
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={handleFileChange} 
+            className="hidden" 
+            accept=".json,.doc,.docx"
+          />
+          <button 
+            onClick={handleUploadClick}
+            className="bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-blue-700"
+          >
+            <Plus size={18} /> 上传新模板
+          </button>
+        </div>
       </div>
       <div className="grid gap-4">
         {TEMPLATES.map(t => (

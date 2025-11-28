@@ -50,7 +50,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ template, formData, onChange,
         </button>
       </div>
 
-      {Object.entries(sections).map(([sectionName, fields]) => (
+      {(Object.entries(sections) as [string, FormField[]][]).map(([sectionName, fields]) => (
         <div key={sectionName} className="bg-white rounded-lg p-5 shadow-sm border border-gray-100">
           <h3 className="text-lg font-bold text-gray-800 mb-4 border-l-4 border-blue-600 pl-3">
             {sectionName}
