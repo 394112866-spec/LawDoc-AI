@@ -1,25 +1,28 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import DynamicForm from './components/DynamicForm';
 import DocumentPreview from './components/DocumentPreview';
 import { TEMPLATES } from './constants';
 import { parseCaseDescription } from './services/geminiService';
 import { DocumentType, Template } from './types';
-import { Download, Printer, Plus, FileSpreadsheet, Upload } from 'lucide-react';
+import { Download, Printer, Plus, FileSpreadsheet, Upload, Loader2, FileText } from 'lucide-react';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'single' | 'batch' | 'templates'>('single');
-  const [selectedTemplateId, setSelectedTemplateId] = useState<DocumentType>(DocumentType.COMPLAINT_PRIVATE_LENDING);
+  // Initialize templates from constant but keep them in state to allow additions
+  const [templates, setTemplates] = useState<Template[]>(TEMPLATES);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>(TEMPLATES[0].id);
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [isThinking, setIsThinking] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   
   // Ref for file upload
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const currentTemplate = TEMPLATES.find(t => t.id === selectedTemplateId) || TEMPLATES[0];
+  const currentTemplate = templates.find(t => t.id === selectedTemplateId) || templates[0];
 
   // Reset form data when template changes, but keep defaults
-  React.useEffect(() => {
+  useEffect(() => {
     setFormData(currentTemplate.defaultContent || {});
   }, [selectedTemplateId, currentTemplate]);
 
@@ -66,9 +69,38 @@ const App: React.FC = () => {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // Simulation of upload process
-      alert(`成功选择模板文件: ${file.name}\n正在解析模板结构...`);
-      // Here you would typically read the file and update the state
+      setIsUploading(true);
+      
+      // Simulate async processing/parsing of the uploaded file
+      setTimeout(() => {
+        const newTemplateId = `CUSTOM_${Date.now()}`;
+        const newTemplate: Template = {
+          id: newTemplateId as any, // Cast to avoid strict enum conflict for dynamic IDs
+          name: file.name.replace(/\.[^/.]+$/, ""), // Remove extension
+          category: '自定义导入',
+          type: 'complaint', // Default assumption, real app would parse this
+          fields: [
+            // Mock fields extracted from the "file"
+            { key: 'plaintiffName', label: '原告姓名/名称', type: 'text', section: '当事人信息', width: 'half' },
+            { key: 'defendantName', label: '被告姓名/名称', type: 'text', section: '当事人信息', width: 'half' },
+            { key: 'facts', label: '事实与理由', type: 'textarea', section: '事实与理由', width: 'full' },
+            { key: 'customField', label: '自定义解析字段', type: 'textarea', section: '其他信息', width: 'full', placeholder: '此处为从文档解析出的特定内容...' }
+          ],
+          defaultContent: {}
+        };
+
+        setTemplates(prev => [...prev, newTemplate]);
+        setIsUploading(false);
+        
+        // Reset input so same file can be selected again
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        
+        // Optional: Switch view or notify
+        if (window.confirm(`模板 "${newTemplate.name}" 解析成功！是否立即前往生成文书？`)) {
+          setSelectedTemplateId(newTemplateId);
+          setActiveTab('single');
+        }
+      }, 1500); // 1.5s simulated delay
     }
   };
 
@@ -82,9 +114,9 @@ const App: React.FC = () => {
           <select
             className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md border"
             value={selectedTemplateId}
-            onChange={(e) => setSelectedTemplateId(e.target.value as DocumentType)}
+            onChange={(e) => setSelectedTemplateId(e.target.value)}
           >
-            {TEMPLATES.map(t => (
+            {templates.map(t => (
               <option key={t.id} value={t.id}>{t.name} ({t.category})</option>
             ))}
           </select>
@@ -164,36 +196,45 @@ const App: React.FC = () => {
           />
           <button 
             onClick={handleUploadClick}
-            className="bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-blue-700"
+            disabled={isUploading}
+            className="bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-blue-700 disabled:opacity-50"
           >
-            <Plus size={18} /> 上传新模板
+            {isUploading ? <Loader2 className="animate-spin" size={18} /> : <Plus size={18} />}
+            {isUploading ? "解析中..." : "上传新模板"}
           </button>
         </div>
       </div>
       <div className="grid gap-4">
-        {TEMPLATES.map(t => (
+        {templates.map(t => (
           <div key={t.id} className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex justify-between items-center">
-            <div>
-              <h3 className="font-bold text-gray-800">{t.name}</h3>
-              <p className="text-sm text-gray-500 mt-1">分类: {t.category} • 字段数: {t.fields.length}</p>
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-blue-50 rounded-lg text-blue-600">
+                <FileText size={24} />
+              </div>
+              <div>
+                <h3 className="font-bold text-gray-800 text-lg">{t.name}</h3>
+                <div className="flex gap-3 text-sm text-gray-500 mt-1">
+                  <span className="bg-gray-100 px-2 py-0.5 rounded text-xs">{t.category}</span>
+                  <span>{t.type === 'complaint' ? '起诉状' : '答辩状'}</span>
+                  <span>{t.fields.length} 个字段</span>
+                </div>
+              </div>
             </div>
             <div className="flex gap-2">
-              <button className="text-sm text-blue-600 hover:bg-blue-50 px-3 py-1 rounded">编辑</button>
-              <button className="text-sm text-red-600 hover:bg-red-50 px-3 py-1 rounded">删除</button>
+              <button 
+                onClick={() => {
+                  setSelectedTemplateId(t.id);
+                  setActiveTab('single');
+                }}
+                className="text-sm border border-blue-600 text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded font-medium transition-colors"
+              >
+                使用
+              </button>
+              <button className="text-sm text-gray-500 hover:bg-gray-100 px-3 py-1.5 rounded transition-colors">编辑</button>
+              <button className="text-sm text-red-600 hover:bg-red-50 px-3 py-1.5 rounded transition-colors">删除</button>
             </div>
           </div>
         ))}
-        {/* Mock additional templates */}
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex justify-between items-center opacity-70">
-          <div>
-            <h3 className="font-bold text-gray-800">劳动仲裁申请书</h3>
-            <p className="text-sm text-gray-500 mt-1">分类: 劳动争议 • 字段数: 12</p>
-          </div>
-          <div className="flex gap-2">
-            <button className="text-sm text-blue-600 hover:bg-blue-50 px-3 py-1 rounded">编辑</button>
-            <button className="text-sm text-red-600 hover:bg-red-50 px-3 py-1 rounded">删除</button>
-          </div>
-        </div>
       </div>
     </div>
   );
