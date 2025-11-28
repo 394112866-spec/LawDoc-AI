@@ -43,14 +43,34 @@ export interface FormField {
 }
 
 export interface Template {
-  id: string; // Changed to string to support dynamic IDs
+  id: string; 
   name: string;
   category: string; 
-  type: 'complaint' | 'answer' | 'application'; // Added 'application'
+  type: 'complaint' | 'answer' | 'application'; 
   fields: FormField[];
   defaultContent: Record<string, any>;
 }
 
 export interface GeneratedDocData {
   [key: string]: any;
+}
+
+// --- New Types for LegalAI and LegalCtrct ---
+
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'model';
+  content: string;
+  timestamp: number;
+}
+
+export interface ContractAnalysisResult {
+  summary: string;
+  riskLevel: 'low' | 'medium' | 'high';
+  risks: Array<{
+    clause: string;
+    issue: string;
+    suggestion: string;
+  }>;
+  missingClauses: string[];
 }
