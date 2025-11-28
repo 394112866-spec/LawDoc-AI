@@ -32,11 +32,15 @@ const footerFields: FormField[] = [
 
 // --- Specific Configurations ---
 
-const createTemplate = (id: DocumentType, name: string, category: string, type: 'complaint' | 'answer', specificFields: FormField[]): Template => {
-  const baseFields = type === 'complaint' ? partyInfoFields : [
-    // Answer fields differ slightly (Respondent vs Appellant context), but we simplify for this demo
-    ...partyInfoFields.map(f => ({...f, section: '当事人信息 (答辩人/被答辩人)'}))
-  ];
+const createTemplate = (id: DocumentType, name: string, category: string, type: 'complaint' | 'answer' | 'application', specificFields: FormField[]): Template => {
+  let baseFields = partyInfoFields;
+  
+  if (type === 'answer') {
+    baseFields = partyInfoFields.map(f => ({...f, section: '当事人信息 (答辩人/被答辩人)'}));
+  } else if (type === 'application') {
+    // For investigation order, we use specific fields instead of generic party info
+    baseFields = []; 
+  }
   
   return {
     id,
@@ -101,40 +105,74 @@ const laborFields: FormField[] = [
   { key: 'facts', label: '事实经过', type: 'textarea', section: '事实与理由', width: 'full' },
 ];
 
+// --- New: Investigation Order Fields ---
+const investigationFields: FormField[] = [
+  // 1. Client Info (The person represented)
+  { key: 'clientName', label: '当事人姓名', type: 'text', section: '当事人信息', width: 'half' },
+  { key: 'clientGender', label: '性别', type: 'text', section: '当事人信息', width: 'half' },
+  { key: 'clientDob', label: '出生日期', type: 'date', section: '当事人信息', width: 'half' },
+  { key: 'clientId', label: '身份证号', type: 'text', section: '当事人信息', width: 'half' },
+  { key: 'clientAddress', label: '住址', type: 'text', section: '当事人信息', width: 'full' },
+
+  // 2. Applicant/Lawyer Info
+  { key: 'lawyer1Name', label: '律师1 姓名', type: 'text', section: '申请人(律师)信息', width: 'half' },
+  { key: 'lawyer1Phone', label: '律师1 电话', type: 'text', section: '申请人(律师)信息', width: 'half' },
+  { key: 'lawyer1Org', label: '律师1 执业机构', type: 'text', section: '申请人(律师)信息', width: 'full' },
+  { key: 'lawyer1License', label: '律师1 执业证号', type: 'text', section: '申请人(律师)信息', width: 'full' },
+  
+  { key: 'lawyer2Name', label: '律师2 姓名', type: 'text', section: '申请人(律师)信息', width: 'half' },
+  { key: 'lawyer2Phone', label: '律师2 电话', type: 'text', section: '申请人(律师)信息', width: 'half' },
+  { key: 'lawyer2Org', label: '律师2 执业机构', type: 'text', section: '申请人(律师)信息', width: 'full' },
+  { key: 'lawyer2License', label: '律师2 执业证号', type: 'text', section: '申请人(律师)信息', width: 'full' },
+
+  // 3. Target (Bank/Company)
+  { key: 'targetCompany', label: '接受调查人(银行/公司)', type: 'text', section: '调查对象信息', width: 'full', placeholder: '例如：蚂蚁(杭州)基金销售有限公司' },
+  
+  // 4. Executee (The person being investigated)
+  { key: 'executeeName', label: '被执行人/被调查人姓名', type: 'text', section: '调查对象信息', width: 'half' },
+  { key: 'executeeId', label: '身份证号', type: 'text', section: '调查对象信息', width: 'half' },
+
+  // 5. Request Content
+  { key: 'investigationRange', label: '查询内容描述', type: 'textarea', section: '请求事项', width: 'full', placeholder: '例如：账户余额、流水、理财产品信息等' },
+  { key: 'startDate', label: '查询起始日期', type: 'date', section: '请求事项', width: 'half' },
+  { key: 'endDate', label: '查询截止日期', type: 'date', section: '请求事项', width: 'half' },
+
+  // 6. Facts (Case Info)
+  { key: 'caseInfo', label: '关联案件情况', type: 'textarea', section: '事实和理由', width: 'full', placeholder: '例如：徐国庆与章立刚民间借贷纠纷一案...' },
+  { key: 'caseNumber', label: '案号', type: 'text', section: '事实和理由', width: 'full', placeholder: '(20xx)X地X法X字第xxx号' },
+];
+
 export const TEMPLATES: Template[] = [
+  // **NEW TEMPLATE ADDED HERE**
+  createTemplate(DocumentType.APPLICATION_INVESTIGATION, '调查令申请书', '执行/调查', 'application', investigationFields),
+
+  // Complaints
   createTemplate(DocumentType.COMPLAINT_PRIVATE_LENDING, '民事起诉状 (民间借贷)', '合同纠纷', 'complaint', lendingFields),
-  createTemplate(DocumentType.ANSWER_PRIVATE_LENDING, '民事答辩状 (民间借贷)', '合同纠纷', 'answer', lendingFields),
-  
   createTemplate(DocumentType.COMPLAINT_DIVORCE, '民事起诉状 (离婚纠纷)', '婚姻家庭', 'complaint', divorceFields),
-  createTemplate(DocumentType.ANSWER_DIVORCE, '民事答辩状 (离婚纠纷)', '婚姻家庭', 'answer', divorceFields),
-  
   createTemplate(DocumentType.COMPLAINT_SALES_CONTRACT, '民事起诉状 (买卖合同)', '合同纠纷', 'complaint', salesFields),
-  createTemplate(DocumentType.ANSWER_SALES_CONTRACT, '民事答辩状 (买卖合同)', '合同纠纷', 'answer', salesFields),
-  
   createTemplate(DocumentType.COMPLAINT_TRAFFIC_ACCIDENT, '民事起诉状 (交通事故)', '侵权责任', 'complaint', trafficFields),
-  createTemplate(DocumentType.ANSWER_TRAFFIC_ACCIDENT, '民事答辩状 (交通事故)', '侵权责任', 'answer', trafficFields),
-  
   createTemplate(DocumentType.COMPLAINT_LABOR_DISPUTE, '民事起诉状 (劳动争议)', '劳动争议', 'complaint', laborFields),
-  createTemplate(DocumentType.ANSWER_LABOR_DISPUTE, '民事答辩状 (劳动争议)', '劳动争议', 'answer', laborFields),
-  
-  // Placeholder for others to show breadth
   createTemplate(DocumentType.COMPLAINT_FINANCIAL_LOAN, '民事起诉状 (金融借款)', '金融借贷', 'complaint', lendingFields),
-  createTemplate(DocumentType.ANSWER_FINANCIAL_LOAN, '民事答辩状 (金融借款)', '金融借贷', 'answer', lendingFields),
-  
   createTemplate(DocumentType.COMPLAINT_PROPERTY_SERVICE, '民事起诉状 (物业合同)', '合同纠纷', 'complaint', salesFields),
-  createTemplate(DocumentType.ANSWER_PROPERTY_SERVICE, '民事答辩状 (物业合同)', '合同纠纷', 'answer', salesFields),
-  
   createTemplate(DocumentType.COMPLAINT_CREDIT_CARD, '民事起诉状 (信用卡)', '金融借贷', 'complaint', lendingFields),
-  createTemplate(DocumentType.ANSWER_CREDIT_CARD, '民事答辩状 (信用卡)', '金融借贷', 'answer', lendingFields),
-  
   createTemplate(DocumentType.COMPLAINT_FINANCIAL_LEASING, '民事起诉状 (融资租赁)', '合同纠纷', 'complaint', salesFields),
-  createTemplate(DocumentType.ANSWER_FINANCIAL_LEASING, '民事答辩状 (融资租赁)', '合同纠纷', 'answer', salesFields),
-  
   createTemplate(DocumentType.COMPLAINT_SECURITIES_MISREP, '民事起诉状 (证券虚假陈述)', '证券纠纷', 'complaint', [
     { key: 'lossAmount', label: '投资损失 (元)', type: 'currency', section: '诉讼请求/答辩事项', width: 'half' },
     { key: 'misrepDate', label: '虚假陈述实施日', type: 'date', section: '事实与理由', width: 'half' },
     { key: 'facts', label: '虚假陈述事实', type: 'textarea', section: '事实与理由', width: 'full' }
   ]),
+  createTemplate(DocumentType.COMPLAINT_INSURANCE, '民事起诉状 (保证保险)', '金融保险', 'complaint', salesFields),
+
+  // Answers
+  createTemplate(DocumentType.ANSWER_PRIVATE_LENDING, '民事答辩状 (民间借贷)', '合同纠纷', 'answer', lendingFields),
+  createTemplate(DocumentType.ANSWER_DIVORCE, '民事答辩状 (离婚纠纷)', '婚姻家庭', 'answer', divorceFields),
+  createTemplate(DocumentType.ANSWER_SALES_CONTRACT, '民事答辩状 (买卖合同)', '合同纠纷', 'answer', salesFields),
+  createTemplate(DocumentType.ANSWER_TRAFFIC_ACCIDENT, '民事答辩状 (交通事故)', '侵权责任', 'answer', trafficFields),
+  createTemplate(DocumentType.ANSWER_LABOR_DISPUTE, '民事答辩状 (劳动争议)', '劳动争议', 'answer', laborFields),
+  createTemplate(DocumentType.ANSWER_FINANCIAL_LOAN, '民事答辩状 (金融借款)', '金融借贷', 'answer', lendingFields),
+  createTemplate(DocumentType.ANSWER_PROPERTY_SERVICE, '民事答辩状 (物业合同)', '合同纠纷', 'answer', salesFields),
+  createTemplate(DocumentType.ANSWER_CREDIT_CARD, '民事答辩状 (信用卡)', '金融借贷', 'answer', lendingFields),
+  createTemplate(DocumentType.ANSWER_FINANCIAL_LEASING, '民事答辩状 (融资租赁)', '合同纠纷', 'answer', salesFields),
   createTemplate(DocumentType.ANSWER_SECURITIES_MISREP, '民事答辩状 (证券虚假陈述)', '证券纠纷', 'answer', [
     { key: 'lossAmount', label: '投资损失 (元)', type: 'currency', section: '诉讼请求/答辩事项', width: 'half' },
     { key: 'facts', label: '答辩事实与理由', type: 'textarea', section: '事实与理由', width: 'full' }

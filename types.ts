@@ -24,6 +24,9 @@ export enum DocumentType {
   ANSWER_FINANCIAL_LEASING = 'ANSWER_FINANCIAL_LEASING',
   ANSWER_SECURITIES_MISREP = 'ANSWER_SECURITIES_MISREP',
   ANSWER_INSURANCE = 'ANSWER_INSURANCE',
+
+  // 申请书 (Applications)
+  APPLICATION_INVESTIGATION = 'APPLICATION_INVESTIGATION', // 调查令申请书
 }
 
 export type FieldType = 'text' | 'date' | 'number' | 'textarea' | 'radio' | 'currency' | 'checkbox';
@@ -40,10 +43,10 @@ export interface FormField {
 }
 
 export interface Template {
-  id: DocumentType;
+  id: string; // Changed to string to support dynamic IDs
   name: string;
-  category: string; // e.g. "民事诉讼", "婚姻家庭", "合同纠纷"
-  type: 'complaint' | 'answer'; // Type of legal document
+  category: string; 
+  type: 'complaint' | 'answer' | 'application'; // Added 'application'
   fields: FormField[];
   defaultContent: Record<string, any>;
 }
