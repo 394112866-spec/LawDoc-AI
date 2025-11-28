@@ -14,23 +14,26 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({ template, data }) => 
     return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
   };
 
+  // Common container styling for "Paper" look
+  const paperClass = "legal-document-container bg-white shadow-2xl mx-auto p-[20mm] w-[210mm] min-h-[297mm] text-gray-900 leading-relaxed font-serif print:shadow-none print:m-0 print:w-full";
+
   // 1. Investigation Order Application Specific Render
   if (template.type === 'application') {
     return (
-      <div className="flex flex-col gap-8 print:block">
+      <div className="flex flex-col gap-10 print:block print:gap-0">
         {/* Page 1: Application */}
-        <div className="legal-document-container bg-white shadow-lg mx-auto p-[20mm] w-[210mm] min-h-[297mm] text-gray-900 leading-loose text-lg font-serif print:shadow-none print:break-after-page">
-          <h1 className="text-3xl font-bold text-center mb-10 tracking-widest">调查令申请书</h1>
+        <div className={`${paperClass} print:break-after-page`}>
+          <h1 className="text-3xl font-bold text-center mb-12 tracking-widest font-[SimHei]">调查令申请书</h1>
           
-          <div className="space-y-4 mb-8">
+          <div className="space-y-4 mb-8 text-lg">
             <p><strong>当事人：</strong>{data.clientName}，{data.clientGender}，{formatDate(data.clientDob)}出生，住{data.clientAddress}，身份证：{data.clientId}。</p>
             
             <div className="flex gap-8">
               <div><strong>申请人：姓名：</strong>{data.lawyer1Name}</div>
               <div><strong>职务：</strong>律师</div>
             </div>
-            <p className="indent-16">工作单位：{data.lawyer1Org}，联系电话：{data.lawyer1Phone}</p>
-            <p className="indent-16">律师执业证号码：{data.lawyer1License}</p>
+            <p className="indent-[5em]">工作单位：{data.lawyer1Org}，联系电话：{data.lawyer1Phone}</p>
+            <p className="indent-[5em]">律师执业证号码：{data.lawyer1License}</p>
 
             {data.lawyer2Name && (
               <>
@@ -38,61 +41,59 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({ template, data }) => 
                   <div><strong>姓名：</strong>{data.lawyer2Name}</div>
                   <div><strong>职务：</strong>律师</div>
                 </div>
-                <p className="indent-16">工作单位：{data.lawyer2Org || data.lawyer1Org}，联系电话：{data.lawyer2Phone}</p>
-                <p className="indent-16">律师执业证号码：{data.lawyer2License}</p>
+                <p className="indent-[5em]">工作单位：{data.lawyer2Org || data.lawyer1Org}，联系电话：{data.lawyer2Phone}</p>
+                <p className="indent-[5em]">律师执业证号码：{data.lawyer2License}</p>
               </>
             )}
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-6 text-lg leading-loose">
             <p><strong>接受调查人：</strong>{data.targetCompany}</p>
             <p><strong>被执行人：</strong>{data.executeeName}，身份证号：{data.executeeId}</p>
             
-            <p><strong>请求事项：</strong>请求贵院出具调查令，以便申请人持调查令前往{data.targetCompany}查询以下被执行人的{data.investigationRange || '账户信息、交易流水'}。</p>
+            <p className="text-justify"><strong>请求事项：</strong>请求贵院出具调查令，以便申请人持调查令前往{data.targetCompany}查询以下被执行人的{data.investigationRange || '账户信息、交易流水'}。</p>
             {data.startDate && <p>查询期间：自 {formatDate(data.startDate)} 起至 {formatDate(data.endDate)} 止。</p>}
 
-            <p>
+            <p className="text-justify">
               <strong>事实和理由：</strong>{data.caseInfo}，贵院已经执行立案，案号为{data.caseNumber || '（____）___执___号'}。
               因申请人无法获取被执行人名下上述财产线索，为维护当事人的合法权益，特依法申请贵院对以上事项开出调查令，以便申请人能持令前往当地调查取得上述财产线索。
             </p>
           </div>
 
-          <div className="mt-16 flex flex-col items-end space-y-4 pr-4">
-            <p className="w-full text-left">此致</p>
-            <p className="w-full text-left font-bold text-xl mb-8">{data.courtName || '__________人民法院'}</p>
+          <div className="mt-20 flex flex-col items-end space-y-4 pr-8">
+            <p className="w-full text-left text-xl">此致</p>
+            <p className="w-full text-left font-bold text-2xl mb-8 border-b-2 border-black pb-2 inline-block max-w-md">{data.courtName || '__________人民法院'}</p>
             
-            <div className="w-64 text-center">
-              <p>申请人：</p>
-              <div className="h-16"></div>
-              <p>{formatDate(data.submitDate)}</p>
+            <div className="w-64 text-center mt-10">
+              <p className="text-xl mb-12">申请人：</p>
+              <p className="text-lg">{formatDate(data.submitDate)}</p>
             </div>
           </div>
         </div>
 
         {/* Page 2: Commitment Letter */}
-        <div className="legal-document-container bg-white shadow-lg mx-auto p-[20mm] w-[210mm] min-h-[297mm] text-gray-900 leading-loose text-lg font-serif print:shadow-none">
-          <h1 className="text-3xl font-bold text-center mb-16 tracking-widest">调查令使用承诺书</h1>
+        <div className={paperClass}>
+          <h1 className="text-3xl font-bold text-center mb-16 tracking-widest font-[SimHei]">调查令使用承诺书</h1>
           
-          <p className="font-bold mb-6">{data.courtName || '__________人民法院'}：</p>
+          <p className="font-bold mb-6 text-xl">{data.courtName || '__________人民法院'}：</p>
           
-          <p className="mb-4 text-justify indent-8">
+          <p className="mb-6 text-justify indent-8 text-lg">
             作为律师调查令申请人，在使用律师调查令过程中，将遵守相关法律规定，并作出以下承诺：
           </p>
 
-          <div className="space-y-4 px-2 mb-16 text-justify">
+          <div className="space-y-6 px-2 mb-16 text-justify text-lg leading-loose">
             <p>1. 持令调查时，主动出示律师调查令和执业证等证件，交由接受调查人核对。</p>
             <p>2. 在律师调查令的有效期间调查取证，有效期限届满，不得使用律师调查令。</p>
             <p>3. 持令取证后，在调查结束后五个工作日内将调查收集证据、调查令回执交回人民法院。</p>
             <p>4. 因自身原因未使用调查令或接受调查人未提供证据，在调查令载明的有效期限届满后五个工作日内，将调查令和回执退还人民法院。</p>
             <p>5. 对调查获得的证据和信息，仅限于本案审判(执行)工作使用，不对外泄露和擅作他用。</p>
-            <p className="mt-8">如违反上述内容，按照《关于在民事审判程序和执行程序中实行律师调查令的若干规定(试行)》第十六条处理。</p>
+            <p className="mt-8 font-bold">如违反上述内容，按照《关于在民事审判程序和执行程序中实行律师调查令的若干规定(试行)》第十六条处理。</p>
           </div>
 
-          <div className="flex flex-col items-end space-y-4 pr-4">
+          <div className="flex flex-col items-end space-y-4 pr-8 mt-20">
             <div className="w-64 text-center">
-              <p>申请人：</p>
-              <div className="h-16"></div>
-              <p>{formatDate(data.submitDate)}</p>
+              <p className="text-xl mb-12">申请人：</p>
+              <p className="text-lg">{formatDate(data.submitDate)}</p>
             </div>
           </div>
         </div>
@@ -231,8 +232,8 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({ template, data }) => 
   );
 
   return (
-    <div className="legal-document-container bg-white shadow-lg mx-auto p-[15mm] w-[210mm] min-h-[297mm] text-gray-900 leading-relaxed print:shadow-none">
-      <h1 className="text-4xl font-bold text-center mb-2 font-serif tracking-widest">{docTitle}</h1>
+    <div className={paperClass}>
+      <h1 className="text-4xl font-bold text-center mb-2 font-serif tracking-widest font-[SimHei]">{docTitle}</h1>
       <h2 className="text-xl font-bold text-center mb-6 font-serif">{subTitle}</h2>
       <div className="border border-black p-2 text-xs mb-4 text-gray-600">
         <strong>说明：</strong>
