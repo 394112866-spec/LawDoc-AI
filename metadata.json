@@ -1,0 +1,5 @@
+{
+  "name": "LawDoc AI - 智能法律文书生成系统",
+  "description": "A professional platform for automatically generating Chinese legal documents (Civil Complaints, Answers, Divorce, Loans, etc.) based on structured data or AI analysis.",
+  "requestFramePermissions": []
+}
